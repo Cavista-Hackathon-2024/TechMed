@@ -2,8 +2,11 @@ import { useNavigation } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { View, Text, StyleSheet, Button, Touchable, TouchableOpacity, Alert } from "react-native";
 import { navigate } from "./core/rootNavigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { LatLng, LeafletView, LeafletWebViewEvents, LeafletWebViewMessage, MapMarker } from "react-native-leaflet-maps";
+import * as Location from 'expo-location';
+import Ionicons from '@expo/vector-icons/Ionicons';
+
 import { DEFAULT_LOCATIONS, DEFAULT_SHAPES } from './data';
 import { stylesMap } from './styles';
 import { LatLngObject, TAction, TState } from './types';
@@ -15,9 +18,9 @@ export default function Home() {
     })
     // let navigation = useNavigation()
     const [zoom, setZoom] = React.useState(15);
-    const [locations, setLocations] =
-        React.useState<Array<MapMarker>>(DEFAULT_LOCATIONS);
-
+    const [locations, setLocations] = React.useState<Array<MapMarker>>([]);
+    let markers = [{ id: "user", icon: '📍', position: coordinate }]
+    // ()=>(<Ionicons name={"pin"} size={5} color={"blue"} />)
     const centerToCoordinate = React.useCallback(() => {
         setCoordinate({
             lat: 38.895,
@@ -108,16 +111,45 @@ export default function Home() {
         // },
     ];
     // 
+
+    useEffect(() => {
+        (async () => {
+
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                // setErrorMsg('Permission to access location was denied');
+                return;
+            }
+
+            let location = await Location.getCurrentPositionAsync({ accuracy: 5 });
+            let { coords: { latitude: lat, longitude: lng } } = location
+            let coord = { lat, lng };
+            setCoordinate(coord);
+            console.log(location);
+        })();
+    }, []);
+
     return (
         <View style={{ flex: 1 }}>
             <LeafletView
                 // onMessageReceived={onMessageReceived}
-                mapMarkers={locations}
+                mapMarkers={markers}
                 mapCenterPosition={coordinate}
                 mapShapes={DEFAULT_SHAPES}
                 doDebug={false}
                 zoom={zoom}
                 zoomControl={false}
+            // ownPositionMarker={{
+            //     position: coordinate,
+            //     icon: "",
+            //     size: [24, 24],
+            //     animation: {
+            //         type: AnimationType.BOUNCE,
+            //         duration: 0.5,
+            //         delay: 0,
+            //         iterationCount: INFINITE_ANIMATION_ITERATIONS
+            //     }
+            // }}
             />
         </View>
     )
