@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import MapView, { MapMarker, MapCallout } from 'react-native-maps';
 import { Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { FontAwesome } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import { LoadingModal } from "react-native-loading-modal";
 import { Formik } from 'formik';
 import Button from './components/Button';
 import Input, { DropDown, SearchDropDown } from './components/Input';
@@ -12,6 +12,8 @@ import Checkbox from 'expo-checkbox';
 import Modal from './components/Modal';
 import { colours } from './core/style';
 import { getHospitals } from './services/hospital_services';
+import { navigate } from './core/rootNavigation';
+import * as Linking from "expo-linking"
 
 const test_markers = [
     {
@@ -23,23 +25,34 @@ const test_markers = [
             latitude: 6.51832,
             longitude: 3.39693
         }
-
-
     }
 ]
 export default function App() {
     const map = useRef<MapView>()
     const [isShowingAdvanceOptions, setIsShowingAdvanceOptions] = useState(false);
-    const [modal, setModal] = useState<"info" | "loading">('info')
+    const [modal, setModal] = useState<"info" | "loading" | "none">('none')
     const [loading, setLoading] = useState(false)
     const [hospitals, setHospitals] = useState(sampleHospitals);
     let [coordinate, setCoordinate] = useState({
         latitude: 6.6059,
         longitude: 3.3411,
-    })
+    });
+    const [focused_hospital, setFocused_Hospital] = useState<any>({});
+
+    // {
+    //     type: "PUBLIC",
+    //     distance_away: 200.003,
+    //     spaces: 5,
+    //     recommended: true,
+    //     name: "Lagos State University Teaching Hospital (LASUTH)",
+    //     address: "Ikeja, Lagos",
+    //     latitude: 6.6059,
+    //     longitude: 3.3411,
+    //     specialties: ["General Surgery", "Neurosurgery", "Orthopedics", "Urology", "Ophthalmology"],
+    // }
 
     useEffect(() => {
-        // map?.current.animateToRegion?.({ ...coordinate, latitudeDelta: 0.1, longitudeDelta: 0.1 })
+        map?.current.animateToRegion?.({ ...coordinate, latitudeDelta: 0.1, longitudeDelta: 0.1 })
     }, [coordinate])
 
     useEffect(() => {
@@ -50,16 +63,17 @@ export default function App() {
                 // setErrorMsg('Permission to access location was denied');
                 return;
             }
-
+            setModal("loading")
             let location = await Location.getCurrentPositionAsync({ accuracy: 5 });
             let { coords: { latitude, longitude } } = location
             let coord = { latitude, longitude };
             setCoordinate(coord);
+            setModal("info")
             console.log(location);
         })();
     }, []);
 
-    const markers = hospitals.map((h, index) => ({
+    const markers = hospitals?.map((h, index) => ({
         id: index,
         coordinates: {
             latitude: h.latitude,
@@ -68,7 +82,7 @@ export default function App() {
         title: h.name,
         info: h.address,
         recommended: h.recommended
-    }))
+    })) || []
 
     const editComplexList = (item: string, list: string[], method: "add" | "remove") => {
         if (method == "add") {
@@ -84,12 +98,13 @@ export default function App() {
         }
     }
 
-    const getMarkers = () => {
-
+    const openBottomBar = () => {
+        // get
     }
+
     return (
         <View style={styles.container}>
-            {/* {(Platform.OS !== 'web') && <MapView
+            {(Platform.OS !== 'web') && <MapView
                 ref={map}
                 style={styles.map}
                 zoomEnabled={true}
@@ -114,8 +129,14 @@ export default function App() {
                             }}
                             title={marker.title}
                             description={marker.info}
+                            onPress={() => {
+                                console.log("feel")
+                                // navigate('Details', { station: marker })
+                            }}
                         >
-                            <Ionicons name={"location"} size={40} color={marker.recommended ? "red" : "#a3a19b"} />
+                            <View className='rounded-full p-4' style={{ backgroundColor: marker.recommended ? "#08991d" : "#787774" }}>
+                                <FontAwesome name="hospital-o" size={20} color="white" />
+                            </View>
                             <MapCallout
                                 onPress={() => {
                                     console.log("feel")
@@ -126,17 +147,19 @@ export default function App() {
                     )
                 })}
             </MapView>
-            } */}
+            }
             <Modal visible={modal == "info"} >
-                <View className='max-h-4/5 w-4/5 p-10 flex flex-col justify-evenly items-stretch bg-BACKGROUND rounded-md'>
+                <View className='max-h-5/6 w-4/5 p-10 flex flex-col justify-evenly items-stretch bg-BACKGROUND rounded-md'>
                     <TitleText className='!text-left'>Patient Information</TitleText>
                     <Formik
                         initialValues={{
                             age: 18,
                             gender: 'MALE',
                             isPregnant: false,
-                            injuries: ["broken bones"],
-                            comorbidities: ["hypertension"],
+                            injuries: [],
+                            comorbidities: [],
+                            // injuries: ["broken bones"],
+                            // comorbidities: ["hypertension"],
                             facilities_required: [],
                             specialties_required: [],
                             GCS: 15,
@@ -144,9 +167,16 @@ export default function App() {
                             specialties: [],
                             facilities: [],
                         }}
-                        onSubmit={values => {
+                        onSubmit={async (values) => {
                             // console.log(values)
-                            getHospitals(values)
+                            try {
+                                setModal("loading")
+                                let hospitals = await getHospitals({ ...values, location: coordinate })
+                                setHospitals(hospitals)
+                                setModal("none");
+                            } catch (error) {
+                                console.log(error)
+                            }
                         }}
                         validator={() => ({})}
                     >
@@ -243,12 +273,31 @@ export default function App() {
                     {/* <Text className='text-SECONDARY text-center'>Login</Text> */}
                 </View>
             </Modal>
+            <Modal visible={modal == "loading"}>
+                <View className='h-1/5 bg-black w-4/5 flex flex-col justify-center items-center rounded-xl'>
+                    <TitleText className='!color-BACKGROUND'>Loading</TitleText>
+                </View>
+            </Modal>
 
-            {/* <LoadingModal modalVisible={loading} task={"loading data"} /> */}
-            <TouchableOpacity style={styles.FAB}>
+            <TouchableOpacity style={styles.FAB} onPress={() => Linking.openURL('tel:+2348033909121')}>
                 <Ionicons name={"call"} size={25} color={colours.BACKGROUND} />
-                {/* <Text>Ambulance</Text> */}
+                <Text className='ml-2 !text-white' bold>Call for Help</Text>
             </TouchableOpacity>
+
+            {focused_hospital.name && <View style={styles.bottom_info}>
+                <View className='flex flex-row justify-between'>
+                    <View>
+                        <Text bold>{focused_hospital.name}</Text>
+                        <SubText bold>{focused_hospital.address}</SubText>
+                    </View>
+                    <TouchableOpacity onPress={() => navigate("Hospital Detail", { hospital: focused_hospital })}
+                        className='px-5 flex justify-center items-center rounded-md bg-green-600'><SubText className='!text-white' bold>Open</SubText></TouchableOpacity>
+                </View>
+                <View className='flex flex-row justify-between'>
+                    <Text>{focused_hospital.distance.toFixed(0)} metres away</Text>
+                    <Text>{focused_hospital.spaces} spaces free</Text>
+                </View>
+            </View>}
         </View>
     );
 }
@@ -291,13 +340,28 @@ const facilities = [
 ]
 
 const styles = StyleSheet.create({
+    bottom_info: {
+        position: "absolute",
+        right: 0,
+        bottom: 0,
+        backgroundColor: colours.BACKGROUND,
+        height: 70,
+        width: "100%",
+        borderTopWidth: 2,
+        borderColor: colours.NEUTRAL_2,
+        flexDirection: "column",
+        justifyContent: "space-between",
+        padding: 4,
+    },
     FAB: {
         position: "absolute",
         right: 20,
-        bottom: 20,
+        bottom: 50,
         backgroundColor: "red",
         padding: 15,
         borderRadius: 50,
+        flexDirection: "row",
+        alignItems: 'center'
     },
     container: {
         flex: 1,
