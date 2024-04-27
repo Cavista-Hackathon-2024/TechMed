@@ -1,4 +1,4 @@
-const express =  require("express");
+const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 require('dotenv').config(); // Load environment variables from .env file
@@ -12,7 +12,7 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => {
         console.log("connected to db");
     })
-    .catch(function(err){
+    .catch(function (err) {
         console.log(err);
     });
 
@@ -46,35 +46,39 @@ app.post("/patient", (req, res) => {
 
     // Save the new patient to the database
     newPatient.save()
-    .then((patient) => {
-        // Send a response with a personalized message
-        const specialists = findSpecialist(patient);
-        const patientWard = wardType(patient);
-        const patientType = patient.age > 14 ? "ADULT" : "PAEDIATRIC";
+        .then((patient) => {
+            // Send a response with a personalized message
+            const specialists = findSpecialist(patient);
+            const patientWard = wardType(patient);
+            const patientType = patient.age > 14 ? "ADULT" : "PAEDIATRIC";
 
-        // Filter hospitals based on required specialist and ward
-        const filteredHospitals = filterHospitals(hospitals, specialists, patientWard, patientType, gender);
+            // Filter hospitals based on required specialist and ward
+            const filteredHospitals = filterHospitals(hospitals, specialists, patientWard, patientType, gender);
 
-        res.json({ message: `Hi! Your information has been received. Specialists: ${specialists.join(", ")}. Ward: ${patientWard.join(", ")}. Hospitals: ${filteredHospitals.join(", ")}` });
-    })
-    .catch((err) => {
-        // Handle any errors and send an error response
-        res.status(500).json({ error: "An error occurred while saving the patient information." });
-    });
+            // res.json({ message: `Hi! Your information has been received. Specialists: ${specialists.join(", ")}. Ward: ${patientWard.join(", ")}. Hospitals: ${filteredHospitals.join(", ")}` });
+            res.json({
+                message: `Hi! Your information has been received.`,
+                data: { specialists: specialists, wards: patientWard, Hospitals: filteredHospitals }
+            });
+        })
+        .catch((err) => {
+            // Handle any errors and send an error response
+            res.status(500).json({ error: "An error occurred while saving the patient information." });
+        });
 });
 
 // GET request to retrieve hospital details
 app.get('/hospitals/:name', (req, res) => {
     const hospitalName = req.params.name;
     const hospital = hospitals.find(h => h.name.toLowerCase() === hospitalName.toLowerCase());
-  
+
     if (hospital) {
-      res.json(hospital);
+        res.json(hospital);
     } else {
-      res.status(404).json({ message: 'Hospital not found' });
+        res.status(404).json({ message: 'Hospital not found' });
     }
-  });
-  
+});
+
 
 
 app.listen(3001, () => {
