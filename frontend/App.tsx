@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { navigationRef, navigate } from './src/core/rootNavigation';
+import { useFonts } from 'expo-font';
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import "./src/global.css"
@@ -49,10 +50,14 @@ const Tab = createBottomTabNavigator();
 
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    'Inria Sans': require('./assets/fonts/InriaSans-Regular.ttf'),
+    'Inria Sans Bold': require('./assets/fonts/InriaSans-Bold.ttf'),
+  });
   return (
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator>
-        <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
         <Stack.Screen name="Hospital Detail" component={HospitalDetails} />
         <Stack.Screen name="Admin Home" component={TabLayout} />
       </Stack.Navigator>
