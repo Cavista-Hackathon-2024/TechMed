@@ -11,6 +11,7 @@ import { colours } from "./core/style";
 // @ts-ignore
 import logo from "./assets/images/LASUTH_icon.png"
 import { Image } from 'expo-image';
+import * as Linking from "expo-linking"
 
 const test_markers = [
     {
@@ -30,13 +31,13 @@ const test_markers = [
 export default function HospitalDetails({ navigation, route }) {
     // const route = useRoute()
     // let [hospital, setHospital] = useState()
-
-    let hospital = route.params?.hospital || {
+    // route.params?.hospital || 
+    let hospital = {
         type: "PUBLIC",
         distance_away: 200.003,
         spaces: 5,
         recommended: true,
-        title: "Lagos State University Teaching Hospital (LASUTH)",
+        title: "Lagos University Teaching Hospital (LUTH)",
         address: "Ikeja, Lagos",
         latitude: 6.6059,
         longitude: 3.3411,
@@ -107,13 +108,13 @@ export default function HospitalDetails({ navigation, route }) {
                         </View>
                     </View>
                     <TouchableOpacity>
-                        <FontAwesome name="phone" size={45} color={colours.POSITIVE} />
+                        <FontAwesome name="phone" size={45} color={colours.POSITIVE} onPress={() => Linking.openURL('tel:+2348033909121')} />
                         {/* <Ionicons className="ml-2" name={"call"} size={45} color={colours.POSITIVE} /> */}
                     </TouchableOpacity>
                 </View>
                 <View className="pl-2">
                     <View>
-                    <Text className="!text-white bg-POSITIVE mb-2 mr-auto p-2 px-4 !rounded-2xl" bold >Highly Recomended</Text>
+                        <Text className="!text-white bg-POSITIVE mb-2 mr-auto p-2 px-4 !rounded-2xl" bold >Highly Recomended</Text>
                     </View>
 
                     <View className="flex flex-row items-center mb-2">
@@ -122,12 +123,13 @@ export default function HospitalDetails({ navigation, route }) {
                     </View>
                     <View className="flex flex-row items-center mb-2">
                         <Ionicons className="mr-2" name={"checkmark-circle"} size={25} color={colours.POSITIVE} />
-                        <Text>- Has Plastic Surgery</Text>
+                        <Text>- Has 2 bed spaces</Text>
                     </View>
                     <View className="flex flex-row items-center mb-2">
                         <Ionicons className="mr-2" name={"checkmark-circle"} size={25} color={colours.POSITIVE} />
-                        <Text>- Has Plastic Surgery</Text>
+                        <Text>- less than 2km away</Text>
                     </View>
+                    <Button title="NOTIFY HOSPITAL"/>
                     {/* unit */}
                     {/* ward */}
                     {/* facilities */}

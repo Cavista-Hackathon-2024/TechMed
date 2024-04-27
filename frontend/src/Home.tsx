@@ -131,7 +131,8 @@ export default function App() {
                             description={marker.info}
                             onPress={() => {
                                 console.log("feel")
-                                // navigate('Details', { station: marker })
+                                // setFocused_Hospital(marker)
+                                navigate('Hospital Detail', { hospital: marker })
                             }}
                         >
                             <View className='rounded-full p-4' style={{ backgroundColor: marker.recommended ? "#08991d" : "#787774" }}>
@@ -172,7 +173,7 @@ export default function App() {
                             try {
                                 setModal("loading")
                                 let hospitals = await getHospitals({ ...values, location: coordinate })
-                                setHospitals(hospitals)
+                                // setHospitals(hospitals)
                                 setModal("none");
                             } catch (error) {
                                 console.log(error)

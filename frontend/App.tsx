@@ -59,7 +59,8 @@ export default function App() {
   });
   return (
     <NavigationContainer ref={navigationRef}>
-      <Stack.Navigator>
+      <Stack.Navigator >
+      {/* <Stack.Navigator initialRouteName="Hospital Detail"> */}
         <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
         <Stack.Screen name="Hospital Detail" component={HospitalDetails} />
         <Stack.Screen name="Admin Home" component={TabLayout} />
