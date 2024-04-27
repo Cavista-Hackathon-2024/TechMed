@@ -11,6 +11,7 @@ import Text, { MinText, SubText, TitleText } from './components/Text';
 import Checkbox from 'expo-checkbox';
 import Modal from './components/Modal';
 import { colours } from './core/style';
+import { getHospitals } from './services/hospital_services';
 
 const test_markers = [
     {
@@ -88,7 +89,7 @@ export default function App() {
     }
     return (
         <View style={styles.container}>
-            <MapView
+            {/* {(Platform.OS !== 'web') && <MapView
                 ref={map}
                 style={styles.map}
                 zoomEnabled={true}
@@ -125,6 +126,7 @@ export default function App() {
                     )
                 })}
             </MapView>
+            } */}
             <Modal visible={modal == "info"} >
                 <View className='max-h-4/5 w-4/5 p-10 flex flex-col justify-evenly items-stretch bg-BACKGROUND rounded-md'>
                     <TitleText className='!text-left'>Patient Information</TitleText>
@@ -133,8 +135,8 @@ export default function App() {
                             age: 18,
                             gender: 'MALE',
                             isPregnant: false,
-                            injuries: [],
-                            comorbidities: [],
+                            injuries: ["broken bones"],
+                            comorbidities: ["hypertension"],
                             facilities_required: [],
                             specialties_required: [],
                             GCS: 15,
@@ -142,22 +144,18 @@ export default function App() {
                             specialties: [],
                             facilities: [],
                         }}
-                        onSubmit={values => console.log(values)}
+                        onSubmit={values => {
+                            // console.log(values)
+                            getHospitals(values)
+                        }}
+                        validator={() => ({})}
                     >
 
                         {({ handleChange, handleBlur, handleSubmit, setFieldValue, values }) => (
-                            <ScrollView className='h-5/6'>
-                                <Text>Basic Info</Text>
-                                {(Platform.OS == 'web') && <View className='flex flex-row row-btw gap-2'>
-                                    <Input placeholder='Age' onChangeText={(text) => setFieldValue("age", text)} />
-                                    <DropDown items={genders}
-                                        selectedValue={values.gender}
-                                        onValueChange={(itemValue, itemIndex) => {
-                                            setFieldValue("gender", itemValue)
-                                        }} />
-                                </View>}
-                                {(Platform.OS !== 'web') &&
-                                    <View style={{ height: 90, marginBottom: 45 }}>
+                            <>
+                                <ScrollView className='h-5/6'>
+                                    <Text>Basic Info</Text>
+                                    {(Platform.OS == 'web') && <View className='flex flex-row row-btw gap-2'>
                                         <Input placeholder='Age' onChangeText={(text) => setFieldValue("age", text)} />
                                         <DropDown items={genders}
                                             selectedValue={values.gender}
@@ -165,45 +163,45 @@ export default function App() {
                                                 setFieldValue("gender", itemValue)
                                             }} />
                                     </View>}
-                                {(values.gender == "FEMALE") && <View className='flex flex-row justify-end items-center gap-1 mb-2'>
-                                    <Text>Is she pregnant?</Text>
-                                    <Checkbox value={values.isPregnant} onValueChange={(value) => setFieldValue("isPregnant", value)} />
-                                </View>}
-
-                                <Text>Emergencies</Text>
-                                <SearchDropDown
-                                    data={emergencies}
-                                    onSelect={(item) => setFieldValue("injuries", editComplexList(item, values.injuries, "add"))}
-                                    onClear={(item) => setFieldValue("injuries", editComplexList(item, values.injuries, "remove"))}
-                                    selected={values.injuries}
-                                    placeholder='What is the emergency?'
-                                />
-
-                                <Text>Comorbidities</Text>
-                                <SearchDropDown
-                                    data={comorbidities}
-                                    onSelect={(item) => setFieldValue("comorbidities", editComplexList(item, values.comorbidities, "add"))}
-                                    onClear={(item) => setFieldValue("comorbidities", editComplexList(item, values.comorbidities, "remove"))}
-                                    selected={values.comorbidities}
-                                    placeholder='Any comorbidities?'
-                                />
-
-                                <TouchableOpacity className='flex-row justify-center items-center gap-1'
-                                    onPress={() => setIsShowingAdvanceOptions((value) => !value)}>
-                                    <SubText className='text-center'>Advanced Options</SubText>
-                                    <Ionicons name={isShowingAdvanceOptions ? "chevron-up" : "chevron-down"} size={20} color="red" />
-                                </TouchableOpacity>
-                                {isShowingAdvanceOptions && <View>
-                                    {(Platform.OS == 'web') && <View className='flex flex-row row-btw gap-2'>
-                                        <Input placeholder='G.C.S.' onChangeText={(text) => setFieldValue("GCS", text)} />
-                                        <DropDown items={triage_levels}
-                                            selectedValue={values.triage_code}
-                                            onValueChange={(itemValue, itemIndex) => {
-                                                setFieldValue("triage_code", itemValue)
-                                            }} />
-                                    </View>}
                                     {(Platform.OS !== 'web') &&
                                         <View style={{ height: 90, marginBottom: 45 }}>
+                                            <Input placeholder='Age' onChangeText={(text) => setFieldValue("age", text)} />
+                                            <DropDown items={genders}
+                                                selectedValue={values.gender}
+                                                onValueChange={(itemValue, itemIndex) => {
+                                                    setFieldValue("gender", itemValue)
+                                                }} />
+                                        </View>}
+                                    {(values.gender == "FEMALE") && <View className='flex flex-row justify-end items-center gap-1 mb-2'>
+                                        <Text>Is she pregnant?</Text>
+                                        <Checkbox value={values.isPregnant} onValueChange={(value) => setFieldValue("isPregnant", value)} />
+                                    </View>}
+
+                                    <Text>Emergencies</Text>
+                                    <SearchDropDown
+                                        data={emergencies}
+                                        onSelect={(item) => setFieldValue("injuries", editComplexList(item, values.injuries, "add"))}
+                                        onClear={(item) => setFieldValue("injuries", editComplexList(item, values.injuries, "remove"))}
+                                        selected={values.injuries}
+                                        placeholder='What is the emergency?'
+                                    />
+
+                                    <Text>Comorbidities</Text>
+                                    <SearchDropDown
+                                        data={comorbidities}
+                                        onSelect={(item) => setFieldValue("comorbidities", editComplexList(item, values.comorbidities, "add"))}
+                                        onClear={(item) => setFieldValue("comorbidities", editComplexList(item, values.comorbidities, "remove"))}
+                                        selected={values.comorbidities}
+                                        placeholder='Any comorbidities?'
+                                    />
+
+                                    <TouchableOpacity className='flex-row justify-center items-center gap-1'
+                                        onPress={() => setIsShowingAdvanceOptions((value) => !value)}>
+                                        <SubText className='text-center'>Advanced Options</SubText>
+                                        <Ionicons name={isShowingAdvanceOptions ? "chevron-up" : "chevron-down"} size={20} color="red" />
+                                    </TouchableOpacity>
+                                    {isShowingAdvanceOptions && <View>
+                                        {(Platform.OS == 'web') && <View className='flex flex-row row-btw gap-2'>
                                             <Input placeholder='G.C.S.' onChangeText={(text) => setFieldValue("GCS", text)} />
                                             <DropDown items={triage_levels}
                                                 selectedValue={values.triage_code}
@@ -211,27 +209,37 @@ export default function App() {
                                                     setFieldValue("triage_code", itemValue)
                                                 }} />
                                         </View>}
-                                    <Text>Specialties</Text>
-                                    <SearchDropDown
-                                        data={specialties}
-                                        onSelect={(item) => setFieldValue("specialties", editComplexList(item, values.specialties, "add"))}
-                                        onClear={(item) => setFieldValue("specialties", editComplexList(item, values.specialties, "remove"))}
-                                        selected={values.specialties}
-                                        placeholder='Enter required specialties?'
-                                    />
-                                    <Text>Facility required</Text>
-                                    <SearchDropDown
-                                        data={facilities}
-                                        onSelect={(item) => setFieldValue("facilities", editComplexList(item, values.facilities, "add"))}
-                                        onClear={(item) => setFieldValue("facilities", editComplexList(item, values.facilities, "remove"))}
-                                        selected={values.facilities}
-                                        placeholder='Enter required facilities?'
-                                    />
-                                </View>}
-                            </ScrollView>
+                                        {(Platform.OS !== 'web') &&
+                                            <View style={{ height: 90, marginBottom: 45 }}>
+                                                <Input placeholder='G.C.S.' onChangeText={(text) => setFieldValue("GCS", text)} />
+                                                <DropDown items={triage_levels}
+                                                    selectedValue={values.triage_code}
+                                                    onValueChange={(itemValue, itemIndex) => {
+                                                        setFieldValue("triage_code", itemValue)
+                                                    }} />
+                                            </View>}
+                                        <Text>Specialties</Text>
+                                        <SearchDropDown
+                                            data={specialties}
+                                            onSelect={(item) => setFieldValue("specialties", editComplexList(item, values.specialties, "add"))}
+                                            onClear={(item) => setFieldValue("specialties", editComplexList(item, values.specialties, "remove"))}
+                                            selected={values.specialties}
+                                            placeholder='Enter required specialties?'
+                                        />
+                                        <Text>Facility required</Text>
+                                        <SearchDropDown
+                                            data={facilities}
+                                            onSelect={(item) => setFieldValue("facilities", editComplexList(item, values.facilities, "add"))}
+                                            onClear={(item) => setFieldValue("facilities", editComplexList(item, values.facilities, "remove"))}
+                                            selected={values.facilities}
+                                            placeholder='Enter required facilities?'
+                                        />
+                                    </View>}
+                                </ScrollView>
+                                <Button onPress={() => handleSubmit()} title='Get Hospitals' />
+                            </>
                         )}
                     </Formik>
-                    <Button title='Get Hospitals' />
                     {/* <Text className='text-SECONDARY text-center'>Login</Text> */}
                 </View>
             </Modal>
