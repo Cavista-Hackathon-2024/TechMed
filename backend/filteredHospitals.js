@@ -232,7 +232,7 @@ function filterHospitals(hospitals, requiredSpecialties, requiredWards, patientT
                 "compatibility": "true",
                 "distance": distanceInMeters,
                 "facilities": hospital.facilities,
-                "wards": JSON.stringify(wards)
+                "wards": wards
             });
         }
     }
